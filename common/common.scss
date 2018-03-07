@@ -3,7 +3,7 @@
 
 $user_card_primary: $primary;
 $user_card_background: $secondary;
-.users-page .wrap{
+.users-page #main-outlet.wrap{
     max-width:100%;
     .directory{
         text-align:center;
