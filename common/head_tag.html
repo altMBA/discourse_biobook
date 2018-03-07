@@ -1,0 +1,252 @@
+<script type="text/discourse-plugin" version="0.8">
+var User = require('discourse/models/user').default;
+var UsersRoute = require('discourse/routes/users').default;
+var computed = require('ember-addons/ember-computed-decorators').default;
+var observes = require('ember-addons/ember-computed-decorators').default;
+var propertyNotEqual= require('discourse/lib/computed').propertyNotEqual;
+var setting= require('discourse/lib/computed').setting;
+
+UsersRoute.reopen({
+    setupController(controller, model){
+        const params = this._params;
+        model.content.forEach(function(item){
+            User.findByUsername(item.user.username).then(function(result){
+                item.set('user', result);
+            })
+        });
+        controller.setProperties({ model, period: params.period, nameInput: params.name });
+    }
+})
+
+api.modifyClass('component:directory-item', {
+    tagName: 'div',
+    classNameBindings: [':biobook-card'],
+    showName: propertyNotEqual('user.name', 'user.username'),
+    hasUserFilters: Ember.computed.gt('postStream.userFilters.length', 0),
+    isSuspended: Ember.computed.notEmpty('user.suspend_reason'),
+    showBadges: setting('enable_badges'),
+    showMoreBadges: Ember.computed.gt('moreBadgesCount', 0),
+    showDelete: Ember.computed.and("viewingAdmin", "showName", "user.canBeDeleted"),
+    linkWebsite: Ember.computed.not('user.isBasic'),
+    hasLocationOrWebsite: Ember.computed.or('user.location', 'user.website_name'),
+    showCheckEmail: Ember.computed.and('user.staged', 'canCheckEmails'),
+    
+    @computed('item.name')
+    nameFirst(name) {
+        return !this.siteSettings.prioritize_username_in_ux && name && name.trim().length > 0;
+    },
+    
+    actions: {
+        composePrivateMessage(args) {
+          this.sendAction('composePrivateMessage', args);
+        },
+
+        togglePosts() {
+          this.sendAction('togglePosts', this.get('user'));
+        },
+    
+        deleteUser() {
+          this.sendAction('deleteUser', this.get('user'));
+        },
+    
+        showUser() {
+          this.sendAction('showUser', this.get('user'));
+        },
+    }
+});
+</script>
+
+<script type='text/x-handlebars' data-template-name='users'>
+{{#d-section pageClass="users"}}
+  {{#load-more selector=".directory tbody tr" action="loadMore"}}
+    <div class="container">
+      <div class='directory'>
+
+        <div class='clearfix'>
+          {{text-field value=nameInput placeholderKey="directory.filter_name" class="filter-name no-blur"}}
+        </div>
+
+        {{#conditional-loading-spinner condition=model.loading}}
+          {{#if model.length}}
+            <div class='total-rows'>{{i18n "directory.total_rows" count=model.totalRows}}</div>
+                {{#each model as |item|}}
+                  {{directory-item item=item user=item.user showTimeRead=showTimeRead showUser="showUser" togglePosts="togglePosts" composePrivateMessage="composePrivateMessage" deleteUser="deleteUser"}}
+                {{/each}}
+
+            {{conditional-loading-spinner condition=model.loadingMore}}
+          {{else}}
+            <div class='clearfix'></div>
+            <p>{{i18n "directory.no_results"}}</p>
+          {{/if}}
+        {{/conditional-loading-spinner}}
+
+      </div>
+    </div>
+  {{/load-more}}
+{{/d-section}}
+</script>
+
+<script type='text/x-handlebars' data-template-name='components/directory-item'>
+<div class="card-content">
+  <div class="user-card-avatar">
+    <a href={{user.path}} {{action "showUser"}} class="card-huge-avatar">{{bound-avatar user "huge"}}</a>
+    {{#if user.primary_group_name}}
+      {{mount-widget widget="avatar-flair" args=user}}
+    {{/if}}
+  </div>
+
+  <div class="names">
+    <span>
+      <h1 class="{{user.staff}} {{user.new_user}} {{if nameFirst "full-name" "username"}}">
+        <a href={{user.path}} {{action "showUser"}}>{{if nameFirst user.name user.username}}</a>
+      </h1>
+      {{#unless nameFirst}}
+        {{#if user.name}}
+          <h2 class='full-name'>{{user.name}}</h2>
+        {{/if}}
+      {{else}}
+        <h2 class='username'>{{user.username}}</h2>
+      {{/unless}}
+
+      {{#if user.title}}
+        <h2>{{user.title}}</h2>
+      {{/if}}
+
+      {{plugin-outlet "user-card-post-names"}}
+    </span>
+  </div>
+  
+  <ul class="usercard-controls">
+      {{#if user.can_send_private_message_to_user}}
+        <li class='compose-pm'>
+          {{d-button
+            class="btn-primary"
+            action=(action "composePrivateMessage" user post)
+            icon="envelope"
+            label="user.private_message"}}
+        </li>
+      {{/if}}
+
+      {{#if showFilter}}
+        <li>
+          {{d-button
+            action=(action "togglePosts" user)
+            icon="filter"
+            translatedLabel=togglePostsLabel}}
+        </li>
+      {{/if}}
+
+      {{#if hasUserFilters}}
+        <li>
+          {{d-button
+            action="cancelFilter"
+            icon="times"
+            label="topic.filters.cancel"}}
+        </li>
+      {{/if}}
+
+      {{#if showDelete}}
+        <li>
+          {{d-button
+            class="btn-danger"
+            action=(action "deleteUser" user)
+            icon="exclamation-triangle"
+            label="admin.user.delete"}}
+        </li>
+      {{/if}}
+    </ul>
+    {{plugin-outlet
+      name="user-card-additional-controls"
+      args=(hash user=user)
+      tagName=""}}
+
+    {{#if isSuspended}}
+      <div class='suspended'>
+        {{d-icon "ban"}}
+        <b>{{i18n 'user.suspended_notice' date=user.suspendedTillDate}}</b><br>
+        <b>{{i18n 'user.suspended_reason'}}</b> {{user.suspend_reason}}
+      </div>
+    {{else}}
+      {{#if user.bio_cooked}}<div class='bio'>{{text-overflow class="overflow" text=user.bio_excerpt}}</div>{{/if}}
+    {{/if}}
+
+    {{#if user.card_badge}}
+      {{#link-to 'badges.show' user.card_badge class="card-badge" title=user.card_badge.name}}
+        {{icon-or-image user.card_badge.image title=user.card_badge.name}}
+      {{/link-to}}
+    {{/if}}
+    {{#if hasLocationOrWebsite}}
+      <div class="location-and-website">
+        {{#if user.location}}
+          <span class='location'>{{d-icon "map-marker"}} <span>{{user.location}}</span></span>
+        {{/if}}
+
+        {{#if user.website_name}}
+          <span class='website-name'>
+            {{d-icon "globe"}}
+            {{#if linkWebsite}}
+              <a href={{user.website}} rel={{unless removeNoFollow 'nofollow noopener'}} target="_blank">{{user.website_name}}</a>
+            {{else}}
+              <span title={{user.website}}>{{user.website_name}}</span>
+            {{/if}}
+          </span>
+        {{/if}}
+
+        {{plugin-outlet name="user-card-location-and-website" args=(hash user=user)}}
+      </div>
+    {{/if}}
+
+    {{#if user}}
+      <div class="metadata">
+        {{#if user.last_posted_at}}
+          <h3><span class='desc'>{{i18n 'last_post'}}</span> {{format-date user.last_posted_at leaveAgo="true"}}</h3>
+        {{/if}}
+        <h3><span class='desc'>{{i18n 'joined'}}</span> {{format-date user.created_at leaveAgo="true"}}</h3>
+        <h3 title="{{timeReadTooltip}}">
+          <span class='desc'>{{i18n 'time_read'}}</span>
+          {{format-duration user.time_read}}
+          {{#if showRecentTimeRead}}
+            <span>({{i18n 'time_read_recently' time_read=recentTimeRead}})</span>
+          {{/if}}
+        </h3>
+        {{#if showCheckEmail}}
+          <h3 class="email">
+            {{d-icon "envelope-o" title="user.email.title"}}
+            {{#if user.email}}
+              {{user.email}}
+            {{else}}
+              {{d-button action="checkEmail" actionParam=user icon="envelope-o" label="admin.users.check_email.text" class="btn-primary"}}
+            {{/if}}
+          </h3>
+        {{/if}}
+        {{plugin-outlet name="user-card-metadata" args=(hash user=user)}}
+      </div>
+    {{/if}}
+
+    {{#if publicUserFields}}
+      <div class="public-user-fields">
+        {{#each publicUserFields as |uf|}}
+          {{#if uf.value}}
+            <div class="public-user-field {{uf.field.dasherized_name}}">
+              <span class="user-field-name">{{uf.field.name}}:</span>
+              <span class="user-field-value">{{uf.value}}</span>
+            </div>
+          {{/if}}
+        {{/each}}
+      </div>
+    {{/if}}
+
+    {{#if showBadges}}
+      <div class="badge-section">
+        {{#each user.featured_user_badges as |ub|}}
+          {{user-badge badge=ub.badge user=user}}
+        {{/each}}
+        {{#if showMoreBadges}}
+          {{#link-to 'user.badges' user class="btn more-user-badges"}}
+            {{i18n 'badges.more_badges' count=moreBadgesCount}}
+          {{/link-to}}
+        {{/if}}
+      </div>
+    {{/if}}
+</div>
+</script>
