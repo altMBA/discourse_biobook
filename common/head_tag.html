@@ -6,7 +6,14 @@ var observes = require('ember-addons/ember-computed-decorators').default;
 var propertyNotEqual= require('discourse/lib/computed').propertyNotEqual;
 var setting= require('discourse/lib/computed').setting;
 
+var excludeUsers = ['discobot', 'discourse'];
+
 UsersRoute.reopen({
+    afterModel(model){
+        const filteredModel = model.content.filter(function(e){console.log(e.user.username);return this.indexOf(e.user.username)<0;},excludeUsers);
+        model.set('content', filteredModel);
+    },
+    
     setupController(controller, model){
         const params = this._params;
         model.content.forEach(function(item){

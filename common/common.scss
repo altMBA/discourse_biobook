@@ -3,7 +3,7 @@
 
 $user_card_primary: $primary;
 $user_card_background: $secondary;
-.users-page #main-outlet.wrap{
+.users-page .wrap{
     max-width:100%;
     .directory{
         text-align:center;
@@ -13,7 +13,6 @@ $user_card_background: $secondary;
   width: 450px;
   box-shadow: none;
   color: $user_card_primary;
-  background: $user_card_background center center;
   background-size: cover;
   min-height: 175px;
   margin: 10px;
@@ -46,6 +45,10 @@ $user_card_background: $secondary;
     }
     .staged {
       font-style: italic;
+    }
+    img.avatar{
+        height:100px;
+        width:100px;
     }
   }
 
