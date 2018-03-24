@@ -8,7 +8,7 @@ var observes = require('ember-addons/ember-computed-decorators').default;
 var propertyNotEqual= require('discourse/lib/computed').propertyNotEqual;
 var setting= require('discourse/lib/computed').setting;
 
-var excludeUsers = ['discobot', 'discourse', 'jomaxro', 'simon.cossar', 'altmba', 'dax'];
+var excludeUsers = ['web', 'altmba', 'alxpck', 'alexpeck', 'ravenbot', 'system', 'klw', 'mjs', 'mschacht', 'mariejennings', 'jenniferrosepatel', 'joebuhlig', 'sammiller', 'discourse', 'discobot', 'simon.cossar', 'dax', 'HAWK', 'blake.erickson', 'techAPJ', 'jomaxro', 'mpalmer', 'sam.saffron'];
 
 UsersRoute.reopen({
     afterModel(model){
@@ -22,7 +22,7 @@ UsersRoute.reopen({
         model.set('content', filteredModel);
         model.set('originalContent', filteredModel);
     },
-    
+
     setupController(controller, model){
         const params = this._params;
         const originalModel = model;
@@ -37,7 +37,7 @@ UsersController.reopen({
             self.set('customGroups', groups);
         });
     }.on('init'),
-  
+
     actions: {
         filterByGroup: function(){
             var self = this;
@@ -46,16 +46,16 @@ UsersController.reopen({
             var content = self.model.content;
             content.forEach(function(user, user_index){
                 if (self.selectedGroup == null){
-                    var userInGroup = true;   
+                    var userInGroup = true;
                 }
                 else {
-                    var userInGroup = false;   
+                    var userInGroup = false;
                 }
                 if (user.user.groups){
                     user.user.groups.forEach(function(group, group_index){
                         if (group.name == self.selectedGroup){
                             userInGroup = true;
-                        }  
+                        }
                     })
                 }
                 if (!userInGroup) {
@@ -65,7 +65,7 @@ UsersController.reopen({
             var filteredModel = self.model.content.filter(function(e){return this.indexOf(e.user.username)<0;},usersNotInGroup);
             self.model.set('content', filteredModel);
         }
-    }  
+    }
 })
 
 api.modifyClass('component:directory-item', {
@@ -80,12 +80,12 @@ api.modifyClass('component:directory-item', {
     linkWebsite: Ember.computed.not('user.isBasic'),
     hasLocationOrWebsite: Ember.computed.or('user.location', 'user.website_name'),
     showCheckEmail: Ember.computed.and('user.staged', 'canCheckEmails'),
-    
+
     @computed('item.name')
     nameFirst(name) {
         return !this.siteSettings.prioritize_username_in_ux && name && name.trim().length > 0;
     },
-    
+
     actions: {
         composePrivateMessage(args) {
           this.sendAction('composePrivateMessage', args);
@@ -94,11 +94,11 @@ api.modifyClass('component:directory-item', {
         togglePosts() {
           this.sendAction('togglePosts', this.get('user'));
         },
-    
+
         deleteUser() {
           this.sendAction('deleteUser', this.get('user'));
         },
-    
+
         showUser() {
           this.sendAction('showUser', this.get('user'));
         },
@@ -168,7 +168,7 @@ api.modifyClass('component:directory-item', {
       {{plugin-outlet "user-card-post-names"}}
     </span>
   </div>
-  
+
   <ul class="usercard-controls">
       {{#if user.can_send_private_message_to_user}}
         <li class='compose-pm'>
