@@ -113,8 +113,7 @@ api.modifyClass('component:directory-item', {
       <div class='directory'>
         <div class='clearfix'>
             <div id="group-filter-wrapper">
-                <!-- {{combo-box content=customGroups valueAttribute="name" value=selectedGroup onSelect=(action "filterByGroup") none="admin.groups.bulk_select"}} -->
-                {{combo-box content=customGroups valueAttribute="name" value=selectedGroup onSelect=(action "filterByGroup") none="Select a Group"}}
+                {{combo-box content=customGroups valueAttribute="name" value=selectedGroup onSelect=(action "filterByGroup") none="admin.groups.bulk_select"}}
             </div>
           {{text-field value=nameInput placeholderKey="directory.filter_name" class="filter-name no-blur"}}
         </div>
