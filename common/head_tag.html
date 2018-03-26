@@ -10,6 +10,8 @@ var setting= require('discourse/lib/computed').setting;
 
 var excludeUsers = ['web', 'altmba', 'alxpck', 'alexpeck', 'ravenbot', 'system', 'klw', 'mjs', 'mschacht', 'mariejennings', 'jenniferrosepatel', 'joebuhlig', 'sammiller', 'discourse', 'discobot', 'simon.cossar', 'dax', 'HAWK', 'blake.erickson', 'techAPJ', 'jomaxro', 'mpalmer', 'sam.saffron'];
 
+I18n.translations.en.js.biobook_group_select = "(select a group)";
+
 UsersRoute.reopen({
     afterModel(model){
         var groupUsers = [];
@@ -113,7 +115,7 @@ api.modifyClass('component:directory-item', {
       <div class='directory'>
         <div class='clearfix'>
             <div id="group-filter-wrapper">
-                {{combo-box content=customGroups valueAttribute="name" value=selectedGroup onSelect=(action "filterByGroup") none="admin.groups.bulk_select"}}
+                {{combo-box content=customGroups valueAttribute="name" value=selectedGroup onSelect=(action "filterByGroup") none="biobook_group_select"}}
             </div>
           {{text-field value=nameInput placeholderKey="directory.filter_name" class="filter-name no-blur"}}
         </div>
