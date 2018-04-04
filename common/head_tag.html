@@ -41,6 +41,28 @@ UsersController.reopen({
     }.on('init'),
 
     actions: {
+        loadMore: function(){
+          this.get('model').loadMore().then(hasMoreResults => {
+                this.send("appendUserData");
+          });
+      },
+      
+        appendUserData: function(){
+            var groupUsers = [];
+            this.get('model').forEach(function(item, index){
+                if (Ember.isEmpty(item.get('user').admin)){
+                    User.findByUsername(item.user.username).then(function(result){
+                        item.set('user', result);
+                    });
+                }
+            });
+            var filteredModel = this.get('model').content.filter(function(e){
+                return this.indexOf(e.user.username)<0;
+            },excludeUsers);
+            this.get('model').set('content', filteredModel);
+            this.get('model').set('originalContent', filteredModel);
+        },
+
         filterByGroup: function(){
             var self = this;
             var usersNotInGroup = [];
