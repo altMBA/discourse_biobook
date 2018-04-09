@@ -12,13 +12,8 @@ $user_card_background: $secondary;
 #group-filter-wrapper{
     float:left;
 }
-.mobile-view {
-    .biobook-card{
-        display: block;
-    }
-}
 .biobook-card {
-  max-width: 395px;
+  width: 395px;
   font-size: 0.95em;
   box-shadow: none;
   color: $user_card_primary;
