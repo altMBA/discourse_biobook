@@ -33,9 +33,12 @@ UsersRoute.reopen({
 })
 
 UsersController.reopen({
+    selectedGroup: "Everyone",
+    
     _init: function() {
         var self = this;
         Group.findAll({ignore_automatic: true}).then(function(groups){
+            groups.unshift({"name":"Everyone"});
             self.set('customGroups', groups);
         });
     }.on('init'),
@@ -65,11 +68,12 @@ UsersController.reopen({
 
         filterByGroup: function(){
             var self = this;
+            var selectedGroup = $('#group-filter-wrapper .selected-name').text().trim();
             var usersNotInGroup = [];
             self.model.set('content', self.model.originalContent);
             var content = self.model.content;
             content.forEach(function(user, user_index){
-                if (self.selectedGroup == null){
+                if (selectedGroup == "Everyone"){
                     var userInGroup = true;
                 }
                 else {
@@ -77,7 +81,7 @@ UsersController.reopen({
                 }
                 if (user.user.groups){
                     user.user.groups.forEach(function(group, group_index){
-                        if (group.name == self.selectedGroup){
+                        if (group.name == selectedGroup){
                             userInGroup = true;
                         }
                     })
