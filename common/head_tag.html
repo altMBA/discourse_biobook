@@ -13,8 +13,9 @@ var excludeUsers = ['web', 'altmba', 'alxpck', 'alexpeck', 'ravenbot', 'system',
 I18n.translations.en.js.biobook_group_select = "(select a group)";
 
 UsersRoute.reopen({
-    afterModel(model){
-        var groupUsers = [];
+    setupController(controller, model){
+        const params = this._params;
+        const originalModel = model;
         model.content.forEach(function(item, index){
             User.findByUsername(item.user.username).then(function(result){
                 item.set('user', result);
@@ -23,11 +24,6 @@ UsersRoute.reopen({
         var filteredModel = model.content.filter(function(e){return this.indexOf(e.user.username)<0;},excludeUsers);
         model.set('content', filteredModel);
         model.set('originalContent', filteredModel);
-    },
-
-    setupController(controller, model){
-        const params = this._params;
-        const originalModel = model;
         controller.setProperties({ model, originalModel: originalModel, period: params.period, nameInput: params.name });
     }
 })
