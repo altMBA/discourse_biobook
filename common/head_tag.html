@@ -10,26 +10,30 @@ var setting= require('discourse/lib/computed').setting;
 
 var excludeUsers = ['web', 'altmba', 'alxpck', 'alexpeck', 'ravenbot', 'system', 'klw', 'mjs', 'mschacht', 'mariejennings', 'jenniferrosepatel', 'joebuhlig', 'sammiller', 'discourse', 'discobot', 'simon.cossar', 'dax', 'HAWK', 'blake.erickson', 'techAPJ', 'jomaxro', 'mpalmer', 'sam.saffron'];
 
-I18n.translations.en.js.biobook_group_select = "(select a group)";
-
 UsersRoute.reopen({
     setupController(controller, model){
         const params = this._params;
         const originalModel = model;
+        const originalContent = model.content;
+        model.set('originalContent', originalContent);
         model.content.forEach(function(item, index){
-            User.findByUsername(item.user.username).then(function(result){
-                item.set('user', result);
-            })
+            if(excludeUsers.indexOf(item.user.username)>-1){
+                 model.content.splice(index, 1);
+                 index--;
+             }
+             else {
+                User.findByUsername(item.user.username).then(function(result){
+                    item.set('user', result);
+                });   
+             }
         });
-        var filteredModel = model.content.filter(function(e){return this.indexOf(e.user.username)<0;},excludeUsers);
-        model.set('content', filteredModel);
-        model.set('originalContent', filteredModel);
         controller.setProperties({ model, originalModel: originalModel, period: params.period, nameInput: params.name });
     }
 })
 
 UsersController.reopen({
     selectedGroup: "Everyone",
+    canLoadMore: true,
     
     _init: function() {
         var self = this;
@@ -41,25 +45,47 @@ UsersController.reopen({
 
     actions: {
         loadMore: function(){
-          this.get('model').loadMore().then(hasMoreResults => {
-                this.send("appendUserData");
-          });
+            if (!this.get('canLoadMore')) { return; }
+            var self = this;
+            this.get('model').loadMore().then(hasMoreResults => {
+                this.send("appendUserData", self);
+            });
       },
       
-        appendUserData: function(){
-            var groupUsers = [];
-            this.get('model').forEach(function(item, index){
-                if (Ember.isEmpty(item.get('user').admin)){
-                    User.findByUsername(item.user.username).then(function(result){
-                        item.set('user', result);
-                    });
+        appendUserData: function(self){
+            var selectedGroup = $('#group-filter-wrapper .selected-name').text().trim();
+            var usersNotInGroup = [];
+            self.get('model').content.forEach(function(item, index){
+                 if(excludeUsers.indexOf(item.user.username)>-1){
+                     self.get('model').content.splice(index, 1);
+                     index--;
+                 }
+                 else {
+                    if (!item.get('user').groups){
+                        User.findByUsername(item.user.username).then(function(result){
+                            item.set('user', result);
+                            if (selectedGroup == "Everyone"){
+                                var userInGroup = true;
+                            }
+                            else {
+                                var userInGroup = false;
+                                if (result.groups){
+                                    result.groups.forEach(function(group, group_index){
+                                        if (group.name == selectedGroup){
+                                            userInGroup = true;
+                                        }
+                                    })
+                                }
+                                if (!userInGroup) {
+                                    usersNotInGroup.push(item.user.username);
+                                }
+                                var filteredModel = self.get('model').content.filter(function(e){return this.indexOf(e.user.username)<0;},usersNotInGroup);
+                                self.get('model').set('content', filteredModel);
+                            }
+                        });   
+                    }
                 }
             });
-            var filteredModel = this.get('model').content.filter(function(e){
-                return this.indexOf(e.user.username)<0;
-            },excludeUsers);
-            this.get('model').set('content', filteredModel);
-            this.get('model').set('originalContent', filteredModel);
         },
 
         filterByGroup: function(){
