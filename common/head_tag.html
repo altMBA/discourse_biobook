@@ -47,8 +47,12 @@ UsersController.reopen({
         loadMore: function(){
             if (!this.get('canLoadMore')) { return; }
             var self = this;
+            var curLength = self.model.content.length;
             this.get('model').loadMore().then(hasMoreResults => {
                 this.send("appendUserData", self);
+                if (curLength >= self.model.content.length){
+                    this.set('canLoadMore', false);
+                }
             });
       },
       
