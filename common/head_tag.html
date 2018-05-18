@@ -8,7 +8,7 @@ var observes = require('ember-addons/ember-computed-decorators').default;
 var propertyNotEqual= require('discourse/lib/computed').propertyNotEqual;
 var setting= require('discourse/lib/computed').setting;
 
-var excludeUsers = ['web', 'altmba', 'alxpck', 'alexpeck', 'ravenbot', 'system', 'klw', 'mjs', 'mschacht', 'mariejennings', 'jenniferrosepatel', 'joebuhlig', 'sammiller', 'discourse', 'discobot', 'simon.cossar', 'dax', 'HAWK', 'blake.erickson', 'techAPJ', 'jomaxro', 'mpalmer', 'sam.saffron'];
+var excludeUsers = ['web', 'altmba', 'alexpeck', 'ravenbot', 'system', 'klw', 'mjs', 'mschacht', 'mariejennings', 'jenniferrosepatel', 'joebuhlig', 'sammiller', 'discourse', 'discobot', 'simon.cossar', 'dax', 'HAWK', 'blake.erickson', 'techAPJ', 'jomaxro', 'mpalmer', 'sam.saffron'];
 
 UsersRoute.reopen({
     setupController(controller, model){
@@ -25,7 +25,7 @@ UsersRoute.reopen({
 UsersController.reopen({
     exclude_usernames: excludeUsers,
     canLoadMore: true,
-    
+
     _init: function() {
         var self = this;
         Group.findAll({ignore_automatic: true}).then(function(groups){
@@ -46,7 +46,7 @@ UsersController.reopen({
                 }
             });
       },
-      
+
         appendUserData: function(self){
             self.get('model').content.forEach(function(item, index){
                 User.findByUsername(item.user.username).then(function(result){
