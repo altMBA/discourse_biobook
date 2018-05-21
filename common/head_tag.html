@@ -18,7 +18,7 @@ UsersRoute.reopen({
                 item.set('user', result);
             });
         });
-        controller.setProperties({ model, exclude_usernames: excludeUsers, period: params.period, nameInput: params.name });
+        controller.setProperties({ model, exclude_usernames: excludeUsers, selectedGroup: params.group, period: params.period, nameInput: params.name });
     }
 })
 
