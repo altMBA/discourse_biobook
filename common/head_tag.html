@@ -107,7 +107,7 @@ api.modifyClass('component:directory-item', {
 
 <script type='text/x-handlebars' data-template-name='users'>
 {{#d-section pageClass="users"}}
-  {{#load-more selector=".directory .card-content" action="loadMore"}}
+  {{#load-more selector=".directory .card-content" action=(action "loadMore")}}
     <div class="container">
       <div class='directory'>
         <div class='clearfix'>
@@ -138,7 +138,7 @@ api.modifyClass('component:directory-item', {
 </script>
 <script type='text/x-handlebars' data-template-name='mobile/users'>
 {{#d-section pageClass="users"}}
-  {{#load-more selector=".directory .card-content" action="loadMore"}}
+  {{#load-more selector=".directory .card-content" action=(action "loadMore")}}
     <div class="container">
       <div class='directory'>
         <div class='clearfix'>
