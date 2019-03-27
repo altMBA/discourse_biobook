@@ -7,6 +7,8 @@ var computed = require('ember-addons/ember-computed-decorators').default;
 var observes = require('ember-addons/ember-computed-decorators').default;
 var propertyNotEqual= require('discourse/lib/computed').propertyNotEqual;
 var setting= require('discourse/lib/computed').setting;
+const on = require('ember-addons/ember-computed-decorators').on;
+const ajax = require('discourse/lib/ajax').ajax;
 
 var excludeUsers = ['web', 'altmba', 'alexpeck', 'ravenbot', 'system', 'klw', 'mjs', 'mschacht', 'mariejennings', 'jenniferrosepatel', 'joebuhlig', 'sammiller', 'discourse', 'discobot', 'simon.cossar', 'dax', 'HAWK', 'blake.erickson', 'techAPJ', 'jomaxro', 'mpalmer', 'sam.saffron'];
 
@@ -96,6 +98,20 @@ api.modifyClass('component:directory-item', {
           })
           .compact();
       }
+    },
+
+    @on('init')
+    getPublicGroups: function(){
+      ajax(`/users/${this.get("user.username")}.json`).then((result) => {
+        const groups = result.user.groups;
+        const publicGroups = [];
+        groups.forEach((group) => {
+          if (group.visibility_level == 0 && !group.name.includes("trust_level")){
+            publicGroups.push(group); 
+          }
+        });
+        this.set("publicGroups", publicGroups);
+      });
     },
 
     @computed('item.name')
@@ -335,6 +351,16 @@ api.modifyClass('component:directory-item', {
         {{/each}}
       </div>
     {{/if}}
+    {{#if publicGroups}}
+      <div class="public-groups">
+        <span class="group-title">Groups: </span>
+        {{#each publicGroups as |group|}}
+          <div class="public-group">
+            <span>{{group.name}}</span>
+          </div>
+        {{/each}}
+      </div>
+    {{/if}}
 
     {{#if showBadges}}
       <div class="badge-section">
@@ -497,6 +523,16 @@ api.modifyClass('component:directory-item', {
               <span class="user-field-value">{{uf.value}}</span>
             </div>
           {{/if}}
+        {{/each}}
+      </div>
+    {{/if}}
+    {{#if publicGroups}}
+      <div class="public-groups">
+        <span class="group-title">Groups: </span>
+        {{#each publicGroups as |group|}}
+          <div class="public-group">
+            <span>{{group.name}}</span>
+          </div>
         {{/each}}
       </div>
     {{/if}}
