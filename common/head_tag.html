@@ -7,18 +7,26 @@ var computed = require('ember-addons/ember-computed-decorators').default;
 var observes = require('ember-addons/ember-computed-decorators').default;
 var propertyNotEqual= require('discourse/lib/computed').propertyNotEqual;
 var setting= require('discourse/lib/computed').setting;
+const on = require('ember-addons/ember-computed-decorators').on;
+const ajax = require('discourse/lib/ajax').ajax;
 
 var excludeUsers = ['web', 'altmba', 'alexpeck', 'ravenbot', 'system', 'klw', 'mjs', 'mschacht', 'mariejennings', 'jenniferrosepatel', 'joebuhlig', 'sammiller', 'discourse', 'discobot', 'simon.cossar', 'dax', 'HAWK', 'blake.erickson', 'techAPJ', 'jomaxro', 'mpalmer', 'sam.saffron'];
 
 UsersRoute.reopen({
     setupController(controller, model){
         const params = this._params;
+        let promises = [];
+        model.set('loading', true);
+        controller.setProperties({ model });
         model.content.forEach(function(item, index){
-            User.findByUsername(item.user.username).then(function(result){
+            promises.push(User.findByUsername(item.user.username).then(function(result){
                 item.set('user', result);
-            });
+            }));
         });
-        controller.setProperties({ model, exclude_usernames: excludeUsers, selectedGroup: params.group, period: params.period, nameInput: params.name });
+        Promise.all(promises).then(function() {
+          model.set('loading', false);
+          controller.setProperties({ model, exclude_usernames: excludeUsers, selectedGroup: params.group, period: params.period, nameInput: params.name });
+        });    
     }
 })
 
@@ -79,6 +87,34 @@ api.modifyClass('component:directory-item', {
     linkWebsite: true,
     hasLocationOrWebsite: Ember.computed.or('user.location', 'user.website_name'),
     showCheckEmail: Ember.computed.and('user.staged', 'canCheckEmails'),
+    @computed("user.groups")
+    publicGroups(groups) {
+      const publicGroups = [];
+      groups.forEach((group) => {
+        if (group.visibility_level == 0 && !group.name.includes("trust_level")){
+          publicGroups.push(group); 
+        }
+      });
+      return publicGroups;
+    },
+    @computed("user.user_fields.@each.value")
+    publicUserFields() {
+      const siteUserFields = this.site.get("user_fields");
+      if (!Ember.isEmpty(siteUserFields)) {
+        const userFields = this.get("user.user_fields");
+        return siteUserFields
+          .filterBy("show_on_user_card", true)
+          .sortBy("position")
+          .map(field => {
+            Ember.set(field, "dasherized_name", field.get("name").dasherize());
+            const value = userFields ? userFields[field.get("id")] : null;
+            return Ember.isEmpty(value)
+              ? null
+              : Ember.Object.create({ value, field });
+          })
+          .compact();
+      }
+    },
 
     @computed('item.name')
     nameFirst(name) {
@@ -317,6 +353,16 @@ api.modifyClass('component:directory-item', {
         {{/each}}
       </div>
     {{/if}}
+    {{#if publicGroups}}
+      <div class="public-groups">
+        <span class="group-title">Groups: </span>
+        {{#each publicGroups as |group|}}
+          <div class="public-group">
+            <span>{{group.name}}</span>
+          </div>
+        {{/each}}
+      </div>
+    {{/if}}
 
     {{#if showBadges}}
       <div class="badge-section">
@@ -479,6 +525,16 @@ api.modifyClass('component:directory-item', {
               <span class="user-field-value">{{uf.value}}</span>
             </div>
           {{/if}}
+        {{/each}}
+      </div>
+    {{/if}}
+    {{#if publicGroups}}
+      <div class="public-groups">
+        <span class="group-title">Groups: </span>
+        {{#each publicGroups as |group|}}
+          <div class="public-group">
+            <span>{{group.name}}</span>
+          </div>
         {{/each}}
       </div>
     {{/if}}
