@@ -249,11 +249,18 @@ $user_card_background: $secondary;
     .group-title {
       margin-right: 5px;
     }
-    .public-group { display: inline-block; }
+    .public-group { 
+      display: inline-block; 
+      color: black;
+      &:hover, &:visited {
+        color: black;
+      }
+    
+    }
     .public-group:not(:last-child)::after {
       content: ", ";
       margin-left: -4px;
-      margin-right: 4px;
+      margin-right: 1px;
     }
   }
   &.show-badges {

@@ -357,9 +357,9 @@ api.modifyClass('component:directory-item', {
       <div class="public-groups">
         <span class="group-title">Groups: </span>
         {{#each publicGroups as |group|}}
-          <span class="public-group">
+          <a href="/g/{{group.name}}" class="public-group">
             {{group.name}}
-          </span>
+          </a>
         {{/each}}
       </div>
     {{/if}}
@@ -532,9 +532,9 @@ api.modifyClass('component:directory-item', {
       <div class="public-groups">
         <span class="group-title">Groups: </span>
         {{#each publicGroups as |group|}}
-          <span class="public-group">
+          <a href="/g/{{group.name}} "class="public-group">
             {{group.name}}
-          </span>
+          </a>
         {{/each}}
       </div>
     {{/if}}
