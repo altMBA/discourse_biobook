@@ -3,11 +3,11 @@ var User = require('discourse/models/user').default;
 var Group = require('discourse/models/group').default;
 var UsersRoute = require('discourse/routes/users').default;
 var UsersController = require('discourse/controllers/users').default;
-var computed = require('ember-addons/ember-computed-decorators').default;
-var observes = require('ember-addons/ember-computed-decorators').default;
+var computed = require('discourse-common/utils/decorators').default;
+var observes = require('discourse-common/utils/decorators').default;
 var propertyNotEqual= require('discourse/lib/computed').propertyNotEqual;
 var setting= require('discourse/lib/computed').setting;
-const on = require('ember-addons/ember-computed-decorators').on;
+const on = require('discourse-common/utils/decorators').on;
 const ajax = require('discourse/lib/ajax').ajax;
 
 var excludeUsers = ['web', 'altmba', 'alexpeck', 'ravenbot', 'system', 'klw', 'mjs', 'mschacht', 'mariejennings', 'jenniferrosepatel', 'joebuhlig', 'sammiller', 'discourse', 'discobot', 'simon.cossar', 'dax', 'HAWK', 'blake.erickson', 'techAPJ', 'jomaxro', 'mpalmer', 'sam.saffron'];
